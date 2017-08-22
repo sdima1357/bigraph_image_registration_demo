@@ -1,0 +1,9 @@
+Fast feature point registration by bigraph oriented edges voting demo code
+
+requirements:  OPENCV 
+
+build: 
+
+cmake .
+make
+./Bigraph
