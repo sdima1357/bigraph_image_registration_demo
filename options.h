@@ -1,5 +1,4 @@
 /**********************************
-*  GE CT_HAIFA_GROUP
 *  Samsonov Dima
 *  Command line options parser.
 *  See bottom of file for usage
