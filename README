@@ -1,8 +1,10 @@
 Fast feature point registration by bigraph oriented edges voting demo code
-Samsonov Dima sdima1357@gmail.com
-vi3dim.com
+See doc/registration.pdf
 
-requirements:  OPENCV 
+Samsonov Dima sdima1357@gmail.com vi3dim.com
+
+
+requirements:  OPENCV,cmake,gcc 
 
 build: 
 
