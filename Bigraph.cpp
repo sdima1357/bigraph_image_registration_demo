@@ -441,8 +441,8 @@ class Detector
 						{
 							Vec2f coord = center+(x-(LEDGE_SX-1)*0.5f)*dir+(y-(LEDGE_SY-1)*0.5f)*dirsw;
 							// bilinear sample of smoothed image on coord
-							float X = clamp(coord[0],0.0f,float(W-1));
-							float Y = clamp(coord[1],0.0f,float(H-1));
+							float X = clamp(coord[0],0.0f,float(W-1.01f));
+							float Y = clamp(coord[1],0.0f,float(H-1.01f));
 							int lx = int(X);
 							int ly = int(Y);
 							float sx = X-lx;
