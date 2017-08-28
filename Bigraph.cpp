@@ -1048,11 +1048,9 @@ int main(int argc, char** argv )
 						}
 					}
 				}
-				
 				int kcntm = 0;
 				int kcnt3 = 0;
 				int kcnt4 = 0;
-				int color = 0xffff;
 				for(int k=0;k<voting_result.size();k++)
 				{
 						int smax =MIN_VOTES*SB;
@@ -1063,8 +1061,8 @@ int main(int argc, char** argv )
 						if(smax>MIN_VOTES*SB)
 						{
 							kcntm++;
-							kcnt3+=(smax>>SBB)>(MIN_VOTES+1);
-							kcnt4+=(smax>>SBB)>(MIN_VOTES+2);
+							kcnt3+=(smax>>SBB)>(MIN_VOTES);
+							kcnt4+=(smax>>SBB)>(MIN_VOTES+1);
 							Vec2f crd1 = LS[0]->levelsV[LV][k].coord;
 							Vec2f crd2 = LS[1]->levelsV[LV][smax&SBM].coord;
 							if(paint)
