@@ -114,6 +114,10 @@ for(int t=0;t<Types;t++)
 
 vector<int> compression_params;
 compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+compression_params.push_back(9);
+compression_params.push_back(IMWRITE_PNG_STRATEGY);
+compression_params.push_back(IMWRITE_PNG_STRATEGY_DEFAULT);
+
 char filename[0x100];
 sprintf(filename,"%s.png",headerName.c_str());
 try {
