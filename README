@@ -1,5 +1,5 @@
 Fast feature point registration by bigraph oriented edges voting demo code
-See doc/Boev.pdf ,doc/Algorithm.pdf
+See doc/Boev.pdf ,doc/Algorithm.pdf and test results in test (test compiled with openCV version 3)
 
 Samsonov Dima sdima1357@gmail.com vi3dim.com
 
