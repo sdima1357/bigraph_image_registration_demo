@@ -169,7 +169,7 @@ static TVec proccessMatches( Size imgsize,
 			     vector<DMatch>& best_match,
                              double overlapThreshold )
 {
-    const double visibilityThreshold = 0.2;
+    const double visibilityThreshold = 0.1;
 
     // 1. [preprocessing] find bounding rect for each element of kp1t_contours and kp_contours.
     // 2. [cross-check] for each DMatch (iK, i1)
@@ -281,9 +281,9 @@ int main(int argc, char** argv)
     static const char* ddms[] =
     {
 	//"BOEV_LUT", "BOEV", "BOEV", "BOEV_LUT",
+        "BOEV_LUTH128", "BOEVHS", "BOEVHS", "BOEV_LUT",
 	"BOEV_LUTH64", "BOEVHR", "BOEVHR", "BOEV_LUT",
-	"BOEV_LUTH32", "BOEVH", "BOEVH", "BOEV_LUT",
-        "BOEV_LUTH16", "BOEVHS", "BOEVHS", "BOEV_LUT",
+	"BOEV_LUTH16", "BOEVH", "BOEVH", "BOEV_LUT",
         "BRISK_BF", "BRISK", "BRISK", "BruteForce-Hamming",
         "ORBX_BF", "ORB", "ORB", "BruteForce-Hamming",
         
@@ -307,7 +307,7 @@ int main(int argc, char** argv)
     static const int viewpointXVals[] = { 20, 30, 40, 50, 60 }; // if viewpoint changes
     static const int jpegXVals[] = { 60, 80, 90, 95, 98 }; // if jpeg compression
 
-    const double overlapThreshold = 0.2;
+    const double overlapThreshold = 0.1;
         COptions Options(argc,argv);
 	Options.Parse("-m"    ,bMakeImages    ," Make Images ", false );
         Options.Parse("-d"    ,dir    ," dir ",string(""));
@@ -336,7 +336,7 @@ int main(int argc, char** argv)
     string headerName = string("precision");
     vector<string> algo_name;
     vector<float>  values;
-    int numAlgorithms =0;
+    //~ int numAlgorithms =0;
     for( int i = 0; ddms[i*4] != 0; i++ )
     {
 	const char* name = ddms[i*4];
@@ -354,8 +354,8 @@ int main(int argc, char** argv)
     
     //~ vector< vector<Vec3f> >  values(numDataSets);
     //~ vector< vector<float> >  recall__values(numDataSets);
-    
-    
+    //~ numAlgorithms = algo_name.size();
+    vector<Mat> MergedImages(data_name.size());
     
     //~ report(headerName,algo_name,values);
     if(bWriteReport)
@@ -418,7 +418,7 @@ int main(int argc, char** argv)
 	}
 	else if(!strcmp(detector_name,"BOEVHS"))
 	{
-		numPoints = 16;
+		numPoints = 128;
 		bBoevFlag= true;
 		bBoevFlagH = true;
 		//~ detector = SURF::create();
@@ -434,7 +434,7 @@ int main(int argc, char** argv)
 	}
 	else if(!strcmp(detector_name,"BOEVH"))
 	{
-		numPoints = 32;
+		numPoints = 16;
 		bBoevFlag= true;
 		bBoevFlagH = true;
 		//~ detector = SURF::create();
@@ -496,7 +496,7 @@ int main(int argc, char** argv)
 	    }
 	    for(int s=0;s<kp1.size();s++)
 	    {
-		    kp1[s].size = std::min(kp1[s].size,16.0f);
+		    //~ kp1[s].size = std::min(kp1[s].size,16.0f);
 	    }
 
             results[i].push_back(vector<TVec>());
@@ -539,7 +539,7 @@ int main(int argc, char** argv)
 		 }
 		    for(int s=0;s<kp.size();s++)
 		    {
-			    kp[s].size = std::min(kp[s].size,16.0f);
+			    //~ kp[s].size = std::min(kp[s].size,16.0f);
 			    //~ kp[s].size = 0.1f;
 		    }
 		cout<<"kp.size()"<<kp.size()<<"\n";
@@ -552,19 +552,19 @@ int main(int argc, char** argv)
                 transformKeypoints( kp, kp_contours, Mat::eye(3, 3, CV_64F));
                 // filter matches
 		  // find minDist  
-		 float minDist = 10000;   
-		for(int k=0;k< matches.size();k++)
-		{
-			minDist=std::min(matches[i].distance,minDist);
-		}
-		minDist*=2.0f;	
-		for(int k=0;k< matches.size();k++)
-		{
-			if(matches[i].distance>minDist)
-			{
-				matches[i].queryIdx = -1;
-			}
-		}	
+		 //~ float minDist = 10000;   
+		//~ for(int k=0;k< matches.size();k++)
+		//~ {
+			//~ minDist=std::min(matches[i].distance,minDist);
+		//~ }
+		//~ minDist*=2.0f;	
+		//~ for(int k=0;k< matches.size();k++)
+		//~ {
+			//~ if(matches[i].distance>minDist)
+			//~ {
+				//~ matches[i].queryIdx = -1;
+			//~ }
+		//~ }	
 		
 		vector<DMatch> best_match;
                 TVec r = proccessMatches( imgK.size(), matches, kp1t_contours, kp_contours, best_match,overlapThreshold );
@@ -601,19 +601,49 @@ int main(int argc, char** argv)
 	 if(bMakeImages)
 	 {		
 		Size os = imgBigColor.size();    
-		float scal = 1920.0/os.width;
+		float scal = 1600.0/os.width;
 		Size ns;
-		ns.width = 1920;
+		ns.width = 1600;
 		ns.height =int(os.height*scal);
 		Mat dst;//dst image
 		//~ Mat src;//src image
 		resize(imgBigColor,dst,ns);//   
+		//~ int baseline =0;
+		//~ Size textSize = getTextSize(name, CV_FONT_HERSHEY_COMPLEX_SMALL,2.0, 1, &baseline);
+		putText(dst, name, Point(100,100), CV_FONT_HERSHEY_COMPLEX_SMALL, 2.0,Scalar(255, 255, 0), 1, 8);
+		
+		
+		 Size ons  = MergedImages[j].size();
+		 //~ PRINT(ons.width);
+		if(ons.width==0)
+		{
+			MergedImages[j] =  dst.clone();
+		}
+		else
+		{
+			Size bns = ons;
+			bns.height+=ns.height ;
+			Mat temp;
+			//~ = MergedImages[j];
+			temp.create(bns, dst.type());
+			//~ PRINT(1);
+			MergedImages[j].copyTo(temp(cv::Rect(0,0,MergedImages[j].cols, MergedImages[j].rows)));
+			//~ PRINT(2);
+			dst.copyTo(temp(cv::Rect(0,MergedImages[j].rows,dst.cols, dst.rows)));
+			//~ PRINT(3);
+			MergedImages[j] = temp;
+		}			
 		//~ namedWindow("Display Image", WINDOW_AUTOSIZE );
 		//~ imshow("Display Image", dst);
+		/*
 		vector<int> compression_params;
 		compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+		compression_params.push_back(9);
+		compression_params.push_back(IMWRITE_PNG_STRATEGY);
+		compression_params.push_back(IMWRITE_PNG_STRATEGY_DEFAULT);
+		 
 		char filename[0x100];
-		sprintf(filename,"%s_%s.png",name,dsname);
+		sprintf(filename,"%s_ALGO_%s.png",dsname,name);
 		try 
 		{
 			imwrite(filename, dst, compression_params);
@@ -623,6 +653,7 @@ int main(int argc, char** argv)
 			fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
 		//~ return ;
 		}
+		*/
 	 }
 	    
 	//~ waitKey(0);
@@ -635,6 +666,29 @@ int main(int argc, char** argv)
 	     }
         }
 	times_stor.push_back(times_s);
+    }
+     if(bMakeImages)
+	{
+    for(int j=0;j<data_name.size();j++)
+    {
+		vector<int> compression_params;
+		compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+		compression_params.push_back(9);
+		compression_params.push_back(IMWRITE_PNG_STRATEGY);
+		compression_params.push_back(IMWRITE_PNG_STRATEGY_DEFAULT);
+		 
+		char filename[0x100];
+		sprintf(filename,"%s.png",data_name[j].c_str());
+		try 
+		{
+			imwrite(filename, MergedImages[j], compression_params);
+		}
+		catch (runtime_error& ex) 
+		{
+			fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+		//~ return ;
+		}
+    }
     }
     //~ string headerName = string("precision");
     //~ vector<string> algo_name;

@@ -12,7 +12,7 @@ inline uint32_t hashLUT(const uint32_t inp)
 {
 	//~ uint64_t s=inp^0x6666666666666666ul;
 	//~ uint32_t k = s+(s>>(LUT_BITS));
-	return (inp+(inp>>LUT_BITS))&(LUT_SIZE-1);
+	return ((inp^0x66666666u)+(inp>>LUT_BITS))&(LUT_SIZE-1);
 	//~ return (inp^(inp>>LUT_BITS)^(inp>>(2*LUT_BITS)))&(LUT_SIZE-1);
 }
 
@@ -68,6 +68,28 @@ void reduceHalf5(Mat& d0,Mat& d1)
 		}
 		
 	}
+#ifdef TEST_IMAGE_REDUCE	
+	static int imageN = 0;
+	imageN++;
+	vector<int> compression_params;
+	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+	compression_params.push_back(9);
+	compression_params.push_back(IMWRITE_PNG_STRATEGY);
+	compression_params.push_back(IMWRITE_PNG_STRATEGY_DEFAULT);
+	 
+	char filename[0x100];
+	sprintf(filename,"%d.png",imageN);
+	try 
+	{
+		imwrite(filename, d1, compression_params);
+	}
+	catch (runtime_error& ex) 
+	{
+		fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+	//~ return ;
+	}
+	
+#endif	
 	//~ PRINT(W2);
 }  
 
@@ -337,7 +359,7 @@ template<class AV> class FindNeig
 		}
 		boxFilter3(featuresImage);
 		boxFilter3(featuresImage);
-		boxFilter3(featuresImage);
+		//~ boxFilter3(featuresImage);
 		
 		for(int y=4;y<H-4;y++)
 		{
@@ -420,16 +442,16 @@ template<class AV> class FindNeig
 				for(int k=0;k<cnt;k++)
 				{
 					int ind1 = buff[k].vt->index;
-					const float kt = 1.0f;///std::sqrt(2.0f); 
+					const float kt = std::sqrt(2.0f); 
 					Vec2f dir  = (buff[k].vt->coord - coord)/kt/2.0f;//*0.5f;
-					Vec2f dirsw = Vec2f(-dir[1],dir[0])*kt/2.0f; 
+					Vec2f dirsw = Vec2f(-dir[1],dir[0])*kt/6.0f; 
 					
 					//~ Vec2f dir  = (buff[k].vt->coord - coord)/2.0f;//*0.5f;  // make edge direction 
 					//~ Vec2f dirsw = Vec2f(-dir[1],dir[0])/2.0f;   // make ortodirection 
 					Vec2f center = (buff[k].vt->coord+coord)*0.5f;
 					uint64_t num =0;
 					int n=0;
-					float val[LEDGE_SX*LEDGE_SY];
+					float val[LEDGE_SIZE];
 					for(int y=0;y<LEDGE_SY;y++)
 					{
 						for(int x=0;x<LEDGE_SX;x++)
@@ -455,45 +477,53 @@ template<class AV> class FindNeig
 					{
 						for(int x=0;x<LEDGE_SX;x++)
 						{
+								//~ num|=(val[y*LEDGE_SX+x]+0.0f>val[((y+x+1)%LEDGE_SY)*LEDGE_SX+((x+y+2)%LEDGE_SX)])<<rcnt;
+								//~ rcnt++;
+								//~ num|=(val[y*LEDGE_SX+x]+0.0f>val[((y+1)%LEDGE_SY)*LEDGE_SX+((x+1)%LEDGE_SX)])<<rcnt;
+								//~ rcnt++;
 							num+=(val[y*LEDGE_SX+x]>val[((y+0)%LEDGE_SY)*LEDGE_SX+((x+3)%LEDGE_SX)])<<rcnt;
 							rcnt++;
 							num+=(val[y*LEDGE_SX+x]>val[((y+1)%LEDGE_SY)*LEDGE_SX+((x+0)%LEDGE_SX)])<<rcnt;
 							rcnt++;
 						}
 					}
+					
 					num+=(buff[k].vt->val>Red[i].val)<<(rcnt&31ul);
 					rcnt++;
-					num+=(val[n-1]>Red[i].val)<<(rcnt&31ul);
-					rcnt++;
-					num+=(val[0]>buff[k].vt->val)<<(rcnt&31ul);
-					rcnt++;
-					num+=(val[0]>val[n-1])<<(rcnt&31ul);
-					rcnt++;
-					num+=(val[0]>val[n/2])<<(rcnt&31ul);
-					rcnt++;
-					num+=(val[n-1]>val[n/2])<<(rcnt&31ul);
-					rcnt++;
+					//~ num+=(val[n-1]>Red[i].val)<<(rcnt&31ul);
+					//~ rcnt++;
+					//~ num+=(val[0]>buff[k].vt->val)<<(rcnt&31ul);
+					//~ rcnt++;
+					//~ num+=(val[0]>val[n-1])<<(rcnt&31ul);
+					//~ rcnt++;
+					//~ num+=(val[0]>val[n/2])<<(rcnt&31ul);
+					//~ rcnt++;
+					//~ num+=(val[n-1]>val[n/2])<<(rcnt&31ul);
+					//~ rcnt++;
 					
 					uint64_t lmask =0;
 					uint64_t lmask_cnt =0;
 					
-					lmask+=(buff[k].vt->val>Red[i].val)<<(lmask_cnt&63ul);
+					lmask^=(buff[k].vt->val>Red[i].val)<<((lmask_cnt*7)&63ul);
+					lmask^=(buff[k].vt->val>Red[i].val)<<((lmask_cnt*lmask_cnt+1)&63ul);;
 					lmask_cnt++;
 					for(int k0=0;k0<LEDGE_SIZE;k0++)
 					{
 						for(int k1=k0+1;k1<LEDGE_SIZE;k1++)
 						{
-							lmask^= (val[k0]>val[k1])<<(lmask_cnt&63ul);
+							uint64_t cn = val[k0]>val[k1];
+							lmask^= (cn)<<((lmask_cnt*7)&63ul);
+							lmask^= (cn)<<((lmask_cnt*lmask_cnt+1)&63ul);
 							lmask_cnt++;
 						}
 					}
 					
 					float summ =0;
-					for(int k=0;k<LEDGE_SX*LEDGE_SY;k++)
+					for(int k=0;k<LEDGE_SIZE;k++)
 					{
 						summ+=val[k];
 					}
-					summ/=LEDGE_SX*LEDGE_SY; 
+					summ/=LEDGE_SIZE; 
 					
 					FeatEdge c;
 					c.mask    = (rcnt>LUT_BITS ? hashLUT(num) : num);
@@ -717,10 +747,9 @@ void BoevMatcher::matchQuery(vector<FeatVertex> & vertices,vector<FeatEdge>& edg
 		HiCl cl("bind Level"); 
 		int rcount = 0; 
 		int rcountOK = 0; 
-		int size = RightEdge.size();
 		const int rmask          = (LUT_SIZE-1);
-		const int smaxSize     = 4096;
-		const int smaxDiff      = LEDGE_SIZE*12;
+		const int smaxSize     = 1<<15;
+		const int smaxDiff      = LEDGE_SIZE*16;
 		const int MIN_VOTES  = 4;//4*NUM_VOTES_OF_EDGE-4;
 		
 		vector<vector<int > > voting_result(LS_QUERY->levelsV[LV].size());
@@ -749,9 +778,10 @@ void BoevMatcher::matchQuery(vector<FeatVertex> & vertices,vector<FeatEdge>& edg
 					//~ if(__builtin_popcount(curr->fmask^cand.fmask)<5)
 					if(cand.fmask==curr->fmask)
 					{	
-						if(__builtin_popcountl(curr->lmask^cand.lmask)<3)
+						int ks = __builtin_popcountl(curr->lmask^cand.lmask);
+						if(ks<12)
 						{
-							int summ = 0;
+							int summ = ks*LEDGE_SIZE/2;
 							for(int p=0;p<LEDGE_SIZE;p++) 
 							{
 								summ+=std::abs(curr->val[p] - cand.val[p]);

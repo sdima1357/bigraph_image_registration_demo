@@ -81,7 +81,7 @@ for(int k=0;k<NY;k++)
 Size textSize = getTextSize(headerName, fontFace,fontScale, thickness, &baseline);
 putText(img,headerName , Point(SIZE_W/2-textSize.width/2,(1)*OFFS), fontFace, fontScale,Scalar(0, 0, 0), thickness, 8);
 	}
-Scalar Colors[] = {Scalar(0, 0, 0),Scalar(80, 80, 80),Scalar(160, 160, 160),Scalar(0, 255, 0),Scalar(255, 0, 0),Scalar(0, 0, 255),Scalar(255, 255, 0),Scalar(255, 0, 255),Scalar(0, 196, 200),Scalar(128,0, 64)}; 
+Scalar Colors[] = {Scalar(0, 0, 255),Scalar(0, 0, 160),Scalar(0, 0, 110),Scalar(0, 255, 0),Scalar(255, 0, 0),Scalar(0, 196, 200),Scalar(255, 255, 0),Scalar(255, 0, 255),Scalar(128,0, 64)}; 
 	
 
 for(int t=0;t<Types;t++)

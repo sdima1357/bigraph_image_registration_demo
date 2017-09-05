@@ -6,12 +6,12 @@
 
 #define     NUM_EDGES_AROUND_VERTEX 48	
 
-#define     LEDGE_SX 4
+#define     LEDGE_SX 5
 #define     LEDGE_SY 3
 #define     LEDGE_SIZE (LEDGE_SX*LEDGE_SY)
 
 // LUT_BITS 13-17 
-#define     LUT_BITS (19)
+#define     LUT_BITS (20)
 #define     LUT_SIZE (1<<LUT_BITS)
 
 // NUM_VOTES_OF_EDGE 1-5
@@ -125,7 +125,7 @@ public:
 			kp.octave = vertices[i].level;
 			kp.pt = vertices[i].coord;
 			kp.response = 1.0f;
-			kp.size = 2*levelScale[kp.octave];
+			kp.size = 16*levelScale[kp.octave];
 			keyPoints[i] = kp;
 		}
 	}
