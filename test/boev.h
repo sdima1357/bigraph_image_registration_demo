@@ -6,16 +6,23 @@
 
 #define     NUM_EDGES_AROUND_VERTEX 48	
 
+#define     DEFAULT_THRESHOLD 10.0f
+
 #define     LEDGE_SX 5
 #define     LEDGE_SY 3
 #define     LEDGE_SIZE (LEDGE_SX*LEDGE_SY)
 
 // LUT_BITS 13-17 
-#define     LUT_BITS (20)
+#define     LUT_BITS (17)
 #define     LUT_SIZE (1<<LUT_BITS)
 
 // NUM_VOTES_OF_EDGE 1-5
-#define     NUM_VOTES_OF_EDGE           2							
+#define    NUM_VOTES_OF_EDGE         1	
+#define    NUM_VOTES_OF_EDGE_MIN     2
+
+//~ #define    NUM_VOTES_OF_EDGE         2	
+//~ #define    NUM_VOTES_OF_EDGE_MIN     4
+
 class HiCl
 {
 	public:
@@ -33,16 +40,14 @@ class HiCl
 	}
 	~HiCl()
 	{
-		    int64 e2 = cv::getTickCount();
-		    double t = 1000*double(e2 - e1)/getTickFrequency();
-		    std::cout<<Name<<" "<<t<<"ms\n";		
+		    std::cout<<Name<<" "<< time_ms()<<" ms\n";		
 	}
 };
 
 struct FeatVertex
 {
-	Vec2f coord;
-	float  val;
+	Vec2f   coord;
+	float   val;
 	int     type;
 	int     level;
 	int     index;	
@@ -51,11 +56,11 @@ struct FeatEdge
 {
 	int        first;
 	int        second;
-	int32_t  mask;
-	uint32_t  fmask;
-	uint64_t  lmask;
+	int32_t    mask;
+	uint32_t   fmask;
+	uint64_t   lmask;
 	int        level;	
-	int8_t    val[LEDGE_SX*LEDGE_SY];
+	int8_t     val[LEDGE_SIZE];
 };
 class Detector
 {
@@ -97,7 +102,7 @@ class BoevDetector
 	float levelScale[MAX_LEVEL];
 
 public:
-	BoevDetector(bool _makeHalfLevels = false,int _L_numEdgesAround=NUM_EDGES_AROUND_VERTEX,int _startLevel=1,float _threshold=10.0f)
+	BoevDetector(bool _makeHalfLevels = false,int _L_numEdgesAround=NUM_EDGES_AROUND_VERTEX,int _startLevel=1,float _threshold=DEFAULT_THRESHOLD)
 	{
 		L_numEdgesAround = _L_numEdgesAround;
 		startLevel = _startLevel;
@@ -125,7 +130,7 @@ public:
 			kp.octave = vertices[i].level;
 			kp.pt = vertices[i].coord;
 			kp.response = 1.0f;
-			kp.size = 16*levelScale[kp.octave];
+			kp.size = 8*levelScale[kp.octave];
 			keyPoints[i] = kp;
 		}
 	}
