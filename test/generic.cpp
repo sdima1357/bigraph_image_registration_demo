@@ -282,8 +282,8 @@ int main(int argc, char** argv)
     {
 	//"BOEV_LUT", "BOEV", "BOEV", "BOEV_LUT",
         "BOEV_LUTH128", "BOEVHS", "BOEVHS", "BOEV_LUT",
-	"BOEV_LUTH64", "BOEVHR", "BOEVHR", "BOEV_LUT",
-	"BOEV_LUTH16", "BOEVH", "BOEVH", "BOEV_LUT",
+	"BOEV_LUTH32", "BOEVHR", "BOEVHR", "BOEV_LUT",
+	"BOEV_LUTH12", "BOEVH", "BOEVH", "BOEV_LUT",
         "BRISK_BF", "BRISK", "BRISK", "BruteForce-Hamming",
         "ORBX_BF", "ORB", "ORB", "BruteForce-Hamming",
         
@@ -426,7 +426,7 @@ int main(int argc, char** argv)
 	}
 	else if(!strcmp(detector_name,"BOEVHR"))
 	{
-		numPoints = 64;
+		numPoints = 32;
 		bBoevFlag= true;
 		bBoevFlagH = true;
 		//~ detector = SURF::create();
@@ -434,7 +434,7 @@ int main(int argc, char** argv)
 	}
 	else if(!strcmp(detector_name,"BOEVH"))
 	{
-		numPoints = 16;
+		numPoints = 12;
 		bBoevFlag= true;
 		bBoevFlagH = true;
 		//~ detector = SURF::create();

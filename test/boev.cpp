@@ -12,7 +12,7 @@ inline uint32_t hashLUT(const uint32_t inp)
 {
 	//~ uint64_t s=inp^0x6666666666666666ul;
 	//~ uint32_t k = s+(s>>(LUT_BITS));
-	return ((inp^0x66666666u)+(inp>>LUT_BITS))&(LUT_SIZE-1);
+	return ((inp)+(inp>>LUT_BITS))&(LUT_SIZE-1);
 	//~ return (inp^(inp>>LUT_BITS)^(inp>>(2*LUT_BITS)))&(LUT_SIZE-1);
 }
 
@@ -444,7 +444,7 @@ template<class AV> class FindNeig
 					int ind1 = buff[k].vt->index;
 					const float kt = std::sqrt(2.0f); 
 					Vec2f dir  = (buff[k].vt->coord - coord)/kt/2.0f;//*0.5f;
-					Vec2f dirsw = Vec2f(-dir[1],dir[0])*kt/6.0f; 
+					Vec2f dirsw = Vec2f(-dir[1],dir[0])*kt/4.0f; 
 					
 					//~ Vec2f dir  = (buff[k].vt->coord - coord)/2.0f;//*0.5f;  // make edge direction 
 					//~ Vec2f dirsw = Vec2f(-dir[1],dir[0])/2.0f;   // make ortodirection 
@@ -494,8 +494,8 @@ template<class AV> class FindNeig
 					//~ rcnt++;
 					//~ num+=(val[0]>buff[k].vt->val)<<(rcnt&31ul);
 					//~ rcnt++;
-					//~ num+=(val[0]>val[n-1])<<(rcnt&31ul);
-					//~ rcnt++;
+					num+=(val[0]>val[n-1])<<(rcnt&31ul);
+					rcnt++;
 					//~ num+=(val[0]>val[n/2])<<(rcnt&31ul);
 					//~ rcnt++;
 					//~ num+=(val[n-1]>val[n/2])<<(rcnt&31ul);
@@ -505,7 +505,7 @@ template<class AV> class FindNeig
 					uint64_t lmask_cnt =0;
 					
 					lmask^=(buff[k].vt->val>Red[i].val)<<((lmask_cnt*7)&63ul);
-					lmask^=(buff[k].vt->val>Red[i].val)<<((lmask_cnt*lmask_cnt+1)&63ul);;
+					//~ lmask^=(buff[k].vt->val>Red[i].val)<<((lmask_cnt*lmask_cnt+1)&63ul);;
 					lmask_cnt++;
 					for(int k0=0;k0<LEDGE_SIZE;k0++)
 					{
@@ -513,7 +513,7 @@ template<class AV> class FindNeig
 						{
 							uint64_t cn = val[k0]>val[k1];
 							lmask^= (cn)<<((lmask_cnt*7)&63ul);
-							lmask^= (cn)<<((lmask_cnt*lmask_cnt+1)&63ul);
+							//~ lmask^= (cn)<<((lmask_cnt*lmask_cnt+1)&63ul);
 							lmask_cnt++;
 						}
 					}
@@ -557,7 +557,8 @@ void Detector::setImage(Mat& src_image)
 	orig= src_image.clone();
 	
 	lowPassedImage= orig.clone();
-	// gauss smooth approximation 3 times box3x3
+	// gauss smooth approximation 4 times box3x3
+	boxFilter3(lowPassedImage);
 	boxFilter3(lowPassedImage);
 	boxFilter3(lowPassedImage);
 	boxFilter3(lowPassedImage);
@@ -586,7 +587,8 @@ void Detector::setImage2(Detector& upperLevelDet)
 		}
 	}
 	lowPassedImage= orig.clone();
-	// gauss smooth approximation 3 times box3x3
+	// gauss smooth approximation 4 times box3x3
+	boxFilter3(lowPassedImage);
 	boxFilter3(lowPassedImage);
 	boxFilter3(lowPassedImage);
 	boxFilter3(lowPassedImage);
@@ -645,7 +647,7 @@ LevelsStore::LevelsStore(vector<FeatVertex> &verts,vector<FeatEdge>&edges,int ma
 	if(1)  // if want compare multiple times 
 	{
 		//~ HiCl cl("sort for better cache access");  
-		#define BTS 8	
+		#define BTS 7	
 		for(int leve=0;leve<MAX_LEVEL;leve++)
 		{
 			int size = levelsE[leve].size();
@@ -654,7 +656,7 @@ LevelsStore::LevelsStore(vector<FeatVertex> &verts,vector<FeatEdge>&edges,int ma
 				vector<vector<FeatEdge> >groups(1<<BTS);
 				for(int k=0;k<size;k++)
 				{
-					int ind = (levelsE[leve][k].mask>>(16-BTS))&((1<<BTS)-1);
+					int ind = (levelsE[leve][k].mask>>(LUT_BITS-BTS))&((1<<BTS)-1);
 					groups[ind].push_back(levelsE[leve][k]);
 				}
 				vector<FeatEdge> ncand;
@@ -748,9 +750,9 @@ void BoevMatcher::matchQuery(vector<FeatVertex> & vertices,vector<FeatEdge>& edg
 		int rcount = 0; 
 		int rcountOK = 0; 
 		const int rmask          = (LUT_SIZE-1);
-		const int smaxSize     = 1<<15;
-		const int smaxDiff      = LEDGE_SIZE*16;
-		const int MIN_VOTES  = 4;//4*NUM_VOTES_OF_EDGE-4;
+		const int smaxSize     = 1<<7;
+		const int smaxDiff      = LEDGE_SIZE*10;
+		const int MIN_VOTES  = NUM_VOTES_OF_EDGE_MIN;//4*NUM_VOTES_OF_EDGE-4;
 		
 		vector<vector<int > > voting_result(LS_QUERY->levelsV[LV].size());
 		
@@ -761,7 +763,7 @@ void BoevMatcher::matchQuery(vector<FeatVertex> & vertices,vector<FeatEdge>& edg
 		for(auto curr=LeftEdge.begin();curr!=LeftEdge.end();curr++)
 		{
 			auto & bindN = LutOfRightEdges[curr->mask];
-			int size = bindN.size();
+			const int size = bindN.size();
 			if(size&&size<smaxSize)
 			{
 				rcount++;
@@ -779,9 +781,9 @@ void BoevMatcher::matchQuery(vector<FeatVertex> & vertices,vector<FeatEdge>& edg
 					if(cand.fmask==curr->fmask)
 					{	
 						int ks = __builtin_popcountl(curr->lmask^cand.lmask);
-						if(ks<12)
+						if(ks<7)
 						{
-							int summ = ks*LEDGE_SIZE/2;
+							int summ = ks*LEDGE_SIZE;
 							for(int p=0;p<LEDGE_SIZE;p++) 
 							{
 								summ+=std::abs(curr->val[p] - cand.val[p]);
